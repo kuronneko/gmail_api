@@ -13,11 +13,15 @@ limitations under the License.
 <!-- [START gmail_quickstart] -->
 <!DOCTYPE html>
 <html>
-  <head>
+
+<head>
     <title>Gmail API Quickstart</title>
     <meta charset="utf-8" />
-  </head>
-  <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js"></script>
+
+</head>
+
+<body>
     <p>Gmail API Quickstart</p>
 
     <!--Add buttons to initiate auth sequence and sign out-->
@@ -27,187 +31,191 @@ limitations under the License.
     <pre id="content" style="white-space: pre-wrap;"></pre>
 
     <script type="text/javascript">
-      /* exported gapiLoaded */
-      /* exported gisLoaded */
-      /* exported handleAuthClick */
-      /* exported handleSignoutClick */
+        /* exported gapiLoaded */
+        /* exported gisLoaded */
+        /* exported handleAuthClick */
+        /* exported handleSignoutClick */
 
-      // TODO(developer): Set to client ID and API key from the Developer Console
-      const CLIENT_ID = '586619828357-8afjhrkhe869fr17kg2lgo5pvqm7a4iu.apps.googleusercontent.com';
-      const API_KEY = 'AIzaSyD3oQKfKOmsUVJhbY24UcSvVAlGDbmnjuA';
+        // TODO(developer): Set to client ID and API key from the Developer Console
+        const CLIENT_ID = '586619828357-8afjhrkhe869fr17kg2lgo5pvqm7a4iu.apps.googleusercontent.com';
+        const API_KEY = 'AIzaSyD3oQKfKOmsUVJhbY24UcSvVAlGDbmnjuA';
 
-      // Discovery doc URL for APIs used by the quickstart
-      const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest';
+        // Discovery doc URL for APIs used by the quickstart
+        const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest';
 
-      // Authorization scopes required by the API; multiple scopes can be
-      // included, separated by spaces.
-      const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly';
+        // Authorization scopes required by the API; multiple scopes can be
+        // included, separated by spaces.
+        const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly';
 
-      let tokenClient;
-      let gapiInited = false;
-      let gisInited = false;
+        let tokenClient;
+        let gapiInited = false;
+        let gisInited = false;
 
-      document.getElementById('authorize_button').style.visibility = 'hidden';
-      document.getElementById('signout_button').style.visibility = 'hidden';
+        document.getElementById('authorize_button').style.visibility = 'hidden';
+        document.getElementById('signout_button').style.visibility = 'hidden';
 
-      /**
-       * Callback after api.js is loaded.
-       */
-      function gapiLoaded() {
-        gapi.load('client', initializeGapiClient);
-      }
-
-      /**
-       * Callback after the API client is loaded. Loads the
-       * discovery doc to initialize the API.
-       */
-      async function initializeGapiClient() {
-        await gapi.client.init({
-          apiKey: API_KEY,
-          discoveryDocs: [DISCOVERY_DOC],
-        });
-        gapiInited = true;
-        maybeEnableButtons();
-      }
-
-      /**
-       * Callback after Google Identity Services are loaded.
-       */
-      function gisLoaded() {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: CLIENT_ID,
-          scope: SCOPES,
-          callback: '', // defined later
-        });
-        gisInited = true;
-        maybeEnableButtons();
-      }
-
-      /**
-       * Enables user interaction after all libraries are loaded.
-       */
-      function maybeEnableButtons() {
-        if (gapiInited && gisInited) {
-          document.getElementById('authorize_button').style.visibility = 'visible';
+        /**
+         * Callback after api.js is loaded.
+         */
+        function gapiLoaded() {
+            gapi.load('client', initializeGapiClient);
         }
-      }
 
-      /**
-       *  Sign in the user upon button click.
-       */
-      function handleAuthClick() {
-        tokenClient.callback = async (resp) => {
-          if (resp.error !== undefined) {
-            throw (resp);
-          }
-          document.getElementById('signout_button').style.visibility = 'visible';
-          document.getElementById('authorize_button').innerText = 'Refresh';
-          //await listLabels();
-          await showAllEmails();
-        };
-
-        if (gapi.client.getToken() === null) {
-          // Prompt the user to select a Google Account and ask for consent to share their data
-          // when establishing a new session.
-          tokenClient.requestAccessToken({prompt: 'consent'});
-        } else {
-          // Skip display of account chooser and consent dialog for an existing session.
-          tokenClient.requestAccessToken({prompt: ''});
+        /**
+         * Callback after the API client is loaded. Loads the
+         * discovery doc to initialize the API.
+         */
+        async function initializeGapiClient() {
+            await gapi.client.init({
+                apiKey: API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+            });
+            gapiInited = true;
+            maybeEnableButtons();
         }
-      }
 
-      /**
-       *  Sign out the user upon button click.
-       */
-      function handleSignoutClick() {
-        const token = gapi.client.getToken();
-        if (token !== null) {
-          google.accounts.oauth2.revoke(token.access_token);
-          gapi.client.setToken('');
-          document.getElementById('content').innerText = '';
-          document.getElementById('authorize_button').innerText = 'Authorize';
-          document.getElementById('signout_button').style.visibility = 'hidden';
+        /**
+         * Callback after Google Identity Services are loaded.
+         */
+        function gisLoaded() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID,
+                scope: SCOPES,
+                callback: '', // defined later
+            });
+            gisInited = true;
+            maybeEnableButtons();
         }
-      }
 
-      /**
-       * Print all Labels in the authorized user's inbox. If no labels
-       * are found an appropriate message is printed.
-       */
-      async function listLabels() {
-        let response;
-        try {
-          response = await gapi.client.gmail.users.labels.list({
-            'userId': 'me',
-          });
-        } catch (err) {
-          document.getElementById('content').innerText = err.message;
-          return;
+        /**
+         * Enables user interaction after all libraries are loaded.
+         */
+        function maybeEnableButtons() {
+            if (gapiInited && gisInited) {
+                document.getElementById('authorize_button').style.visibility = 'visible';
+            }
         }
-        const labels = response.result.labels;
-        if (!labels || labels.length == 0) {
-          document.getElementById('content').innerText = 'No labels found.';
-          return;
+
+        /**
+         *  Sign in the user upon button click.
+         */
+        function handleAuthClick() {
+            tokenClient.callback = async (resp) => {
+                if (resp.error !== undefined) {
+                    throw (resp);
+                }
+                document.getElementById('signout_button').style.visibility = 'visible';
+                document.getElementById('authorize_button').innerText = 'Refresh';
+                //await listLabels();
+                await showAllEmails();
+            };
+
+            if (gapi.client.getToken() === null) {
+                // Prompt the user to select a Google Account and ask for consent to share their data
+                // when establishing a new session.
+                tokenClient.requestAccessToken({
+                    prompt: 'consent'
+                });
+            } else {
+                // Skip display of account chooser and consent dialog for an existing session.
+                tokenClient.requestAccessToken({
+                    prompt: ''
+                });
+            }
         }
-        // Flatten to string to display
-        const output = labels.reduce(
-            (str, label) => `${str}${label.name}\n`,
-            'Labels:\n');
-        document.getElementById('content').innerText = output;
-      }
 
-
-
-
-
-      async function showAllEmails() {
-  let response;
-  try {
-    response = await gapi.client.gmail.users.messages.list({
-      'userId': 'me',
-      'maxResults': 10, // change to the number of emails you want to retrieve
-    });
-  } catch (err) {
-    console.error(err);
-    document.getElementById('email-content').innerText = 'An error occurred while retrieving the emails.';
-    return;
-  }
-  const messages = response.result.messages;
-  if (!messages || messages.length === 0) {
-    console.log('No messages found.');
-    document.getElementById('email-content').innerText = 'No messages found.';
-    return;
-  }
-  const emails = [];
-  for (const message of messages) {
-    try {
-      response = await gapi.client.gmail.users.messages.get({
-        'userId': 'me',
-        'id': message.id,
-        'format': 'full', // Retrieve full message including attachments
-      });
-    } catch (err) {
-      console.error(err);
-      document.getElementById('email-content').innerText = 'An error occurred while retrieving the email.';
-      return;
-    }
-    const headers = response.result.payload.headers;
-    const subject = headers.find(header => header.name === 'Subject');
-    const from = headers.find(header => header.name === 'From');
-    const date = headers.find(header => header.name === 'Date');
-    const body = response.result.snippet;
-    const attachments = [];
-    const payload = response.result.payload;
-    if (payload.parts && payload.parts.length > 0) {
-      for (let i = 0; i < payload.parts.length; i++) {
-        const part = payload.parts[i];
-        if (part.filename && part.filename.length > 0) {
-          // This part is an attachment
-          attachments.push(part);
+        /**
+         *  Sign out the user upon button click.
+         */
+        function handleSignoutClick() {
+            const token = gapi.client.getToken();
+            if (token !== null) {
+                google.accounts.oauth2.revoke(token.access_token);
+                gapi.client.setToken('');
+                document.getElementById('content').innerText = '';
+                document.getElementById('authorize_button').innerText = 'Authorize';
+                document.getElementById('signout_button').style.visibility = 'hidden';
+            }
         }
-      }
-    }
-    const emailHtml = `
+
+        /**
+         * Print all Labels in the authorized user's inbox. If no labels
+         * are found an appropriate message is printed.
+         */
+        async function listLabels() {
+            let response;
+            try {
+                response = await gapi.client.gmail.users.labels.list({
+                    'userId': 'me',
+                });
+            } catch (err) {
+                document.getElementById('content').innerText = err.message;
+                return;
+            }
+            const labels = response.result.labels;
+            if (!labels || labels.length == 0) {
+                document.getElementById('content').innerText = 'No labels found.';
+                return;
+            }
+            // Flatten to string to display
+            const output = labels.reduce(
+                (str, label) => `${str}${label.name}\n`,
+                'Labels:\n');
+            document.getElementById('content').innerText = output;
+        }
+
+
+
+
+
+        async function showAllEmails() {
+            let response;
+            try {
+                response = await gapi.client.gmail.users.messages.list({
+                    'userId': 'me',
+                    'maxResults': 10, // change to the number of emails you want to retrieve
+                });
+            } catch (err) {
+                console.error(err);
+                document.getElementById('email-content').innerText = 'An error occurred while retrieving the emails.';
+                return;
+            }
+            const messages = response.result.messages;
+            if (!messages || messages.length === 0) {
+                console.log('No messages found.');
+                document.getElementById('email-content').innerText = 'No messages found.';
+                return;
+            }
+            const emails = [];
+            for (const message of messages) {
+                try {
+                    response = await gapi.client.gmail.users.messages.get({
+                        'userId': 'me',
+                        'id': message.id,
+                        'format': 'full', // Retrieve full message including attachments
+                    });
+                } catch (err) {
+                    console.error(err);
+                    document.getElementById('email-content').innerText = 'An error occurred while retrieving the email.';
+                    return;
+                }
+                const headers = response.result.payload.headers;
+                const subject = headers.find(header => header.name === 'Subject');
+                const from = headers.find(header => header.name === 'From');
+                const date = headers.find(header => header.name === 'Date');
+                const body = response.result.snippet;
+                const attachments = [];
+                const payload = response.result.payload;
+                if (payload.parts && payload.parts.length > 0) {
+                    for (let i = 0; i < payload.parts.length; i++) {
+                        const part = payload.parts[i];
+                        if (part.filename && part.filename.length > 0) {
+                            // This part is an attachment
+                            attachments.push(part);
+                        }
+                    }
+                }
+                const emailHtml = `
       <div>
         <button onclick="showEmail('${message.id}')">Show Email</button>
         <span><strong>From:</strong> ${from.value}</span>
@@ -219,70 +227,184 @@ limitations under the License.
         <p><strong>Date:</strong> ${date.value}</p>
         <p><strong>Body:</strong> ${body}</p>
         ${attachments.length > 0 ? `<p><strong>Attachments:</strong> ${attachments.map(att => `<a href="#" onclick="downloadAttachment('${message.id}', '${att.body.attachmentId}', '${att.filename}')">${att.filename}</a>`).join(', ')}</p>` : ''}
+            <div id="my_pdf_viewer">
+        <div id="canvas_container">
+            <canvas id="pdf_renderer"></canvas>
+        </div>
+        <div id="navigation_controls">
+            <button id="go_previous" onclick="goPrevious()">Previous</button>
+            <input id="current_page" value="1" type="number" onchange="goToPage()"/>
+            <button id="go_next" onclick="goNext()">Next</button>
+        </div>
+        <div id="zoom_controls">
+            <button id="zoom_in" onclick="zoomIn()">+</button>
+            <button id="zoom_out" onclick="zoomOut()">-</button>
+        </div>
+        </div>
       </div>
     `;
-    emails.push(emailHtml);
-  }
-  document.getElementById('email-content').innerHTML = emails.join('');
-}
+                emails.push(emailHtml);
+            }
+            document.getElementById('email-content').innerHTML = emails.join('');
+        }
 
-function showEmail(emailId) {
-  const emailDiv = document.getElementById(emailId);
-  if (emailDiv.style.display === 'none') {
-    emailDiv.style.display = 'block';
-  } else {
-    emailDiv.style.display = 'none';
-  }
-}
+        async function showEmail(id) {
+            const emailDiv = document.getElementById(id);
+            if (emailDiv.style.display === 'none') {
+                emailDiv.style.display = 'block';
+                const pdfLink = emailDiv.querySelector('a');
+                if (pdfLink) {
+                    const pdfUrl = pdfLink.href;
+                    const pdfByteArray = await fetch(pdfUrl).then(res => res.arrayBuffer());
+                    const pdf = await pdfjsLib.getDocument({
+                        data: pdfByteArray
+                    }).promise;
+                    renderPdf(pdf);
+                }
+            } else {
+                emailDiv.style.display = 'none';
+                const pdfViewer = emailDiv.querySelector('#my_pdf_viewer');
+                if (pdfViewer) {
+                    const canvas = pdfViewer.querySelector('#pdf_renderer');
+                    const context = canvas.getContext('2d');
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+        }
 
-async function downloadAttachment(messageId, attachmentId, filename) {
-  try {
-    const response = await gapi.client.request({
-      'path': `/gmail/v1/users/me/messages/${messageId}/attachments/${attachmentId}`,
-      'method': 'GET',
-      'params': {'format': 'raw'},
-      'headers': {'Authorization': `Bearer ${gapi.auth.getToken().access_token}`},
-      'responseType': 'arraybuffer',
-    });
+        let pdfState = {
+            pdf: null,
+            currentPage: 1,
+            zoom: 1
+        };
 
-    const replacedString = response.result.data.replace(/-/g, '+').replace(/_/g, '/');
+        function renderPdf(pdf) {
+            pdfState.pdf = pdf;
+            pdfState.currentPage = 1;
+            const canvas = document.querySelector('#pdf_renderer');
+            const context = canvas.getContext('2d');
+            pdf.getPage(1).then(page => {
+                const viewport = page.getViewport(pdfState.zoom);
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                });
+            });
+        }
 
-        // Convert base64 string to binary data
-    const binaryData = atob(replacedString);
+        function goNext() {
+            if (pdfState.pdf && pdfState.currentPage < pdfState.pdf.numPages) {
+                pdfState.currentPage++;
+                renderPage();
+            }
+        }
 
-    // Create a Uint8Array from the binary data
-    const uint8Array = new Uint8Array(binaryData.length);
-    for (let i = 0; i < binaryData.length; i++) {
-    uint8Array[i] = binaryData.charCodeAt(i);
-    }
+        function goPrevious() {
+            if (pdfState.pdf && pdfState.currentPage > 1) {
+                pdfState.currentPage--;
+                renderPage();
+            }
+        }
 
-    // Create a blob object from the Uint8Array
-    const blob = new Blob([uint8Array], { type: response.headers['Content-Type'] });
-    //const blob = new Blob([replacedString], {type: response.headers['Content-Type']});
+        function goToPage() {
+            if (pdfState.pdf) {
+                const input = document.querySelector('#current_page');
+                const newPage = parseInt(input.value);
+                if (newPage >= 1 && newPage <= pdfState.pdf.numPages) {
+                    pdfState.currentPage = newPage;
+                    renderPage();
+                } else {
+                    input.value = pdfState.currentPage;
+                }
+            }
+        }
 
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (err) {
-    console.error(err);
-    alert('An error occurred while downloading the attachment.');
-  }
-}
+        function zoomIn() {
+            if (pdfState.pdf && pdfState.zoom < 3) {
+                pdfState.zoom += 0.2;
+                renderPage();
+            }
+        }
 
+        function zoomOut() {
+            if (pdfState.pdf && pdfState.zoom > 0.5) {
+                pdfState.zoom -= 0.2;
+                renderPage();
+            }
+        }
 
+        function renderPage() {
+            const canvas = document.querySelector('#pdf_renderer');
+            const context = canvas.getContext('2d');
+            pdfState.pdf.getPage(pdfState.currentPage).then(page => {
+                const viewport = page.getViewport(pdfState.zoom);
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                page.render({
+                    canvasContext: context,
+                    viewport: viewport
+                });
+            });
+        }
 
+        async function getFile(messageId, attachmentId){
+            const response = await gapi.client.request({
+                    'path': `/gmail/v1/users/me/messages/${messageId}/attachments/${attachmentId}`,
+                    'method': 'GET',
+                    'params': {
+                        'format': 'raw'
+                    },
+                    'headers': {
+                        'Authorization': `Bearer ${gapi.auth.getToken().access_token}`
+                    },
+                    'responseType': 'arraybuffer',
+                });
 
+                const replacedString = response.result.data.replace(/-/g, '+').replace(/_/g, '/');
+
+                // Convert base64 string to binary data
+                const binaryData = atob(replacedString);
+
+                // Create a Uint8Array from the binary data
+                const uint8Array = new Uint8Array(binaryData.length);
+                for (let i = 0; i < binaryData.length; i++) {
+                    uint8Array[i] = binaryData.charCodeAt(i);
+                }
+
+                // Create a blob object from the Uint8Array
+                const blob = new Blob([uint8Array], {
+                    type: response.headers['Content-Type']
+                });
+
+                return blob;
+        }
+
+        async function downloadAttachment(messageId, attachmentId, filename) {
+            try {
+                blob = await getFile(messageId, attachmentId);
+                //const blob = new Blob([replacedString], {type: response.headers['Content-Type']});
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (err) {
+                console.error(err);
+                alert('An error occurred while downloading the attachment.');
+            }
+        }
     </script>
 
-<div id="email-content"></div>
+    <div id="email-content"></div>
 
 
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>
     <script async defer src="https://accounts.google.com/gsi/client" onload="gisLoaded()"></script>
-  </body>
+</body>
+
 </html>
 <!-- [END gmail_quickstart] -->

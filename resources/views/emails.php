@@ -18,7 +18,22 @@ limitations under the License.
     <title>Gmail API Quickstart</title>
     <meta charset="utf-8" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.0.943/pdf.min.js"></script>
+    <style>
+        .wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
 
+.left {
+  grid-column: 1;
+}
+
+.right {
+  grid-column: 2;
+}
+
+    </style>
 </head>
 
 <body>
@@ -215,9 +230,10 @@ limitations under the License.
                         }
                     }
                 }
+
                 const emailHtml = `
       <div>
-        <button onclick="showEmail('${message.id}', 'ANGjdJ8O6xXgX3w7INF5EE_GdxUsp7mWxcii_yI8scnYhC8RbTIoNiG7f4sJlCxpTRZ5wHijWwnXwqS-TPiUW1lannJId5ttX7B6pi4ZoX2bOZ3kGSUP6OsJfy-7OF2rZhBv_yOFSD4205xXLLtzWeBZkXtdnKA0fVx2uFR40wIZ5P78JfKq0XOh_0XSdtPPBK_tyXEgSmlctB9N-RT_SrA2N2AYkN_Ici0ENnJOx_7xtXsABell0Ey4_g9Cz95hb3lzp5bfaoVlrFKMsAPElLGGMGbp1yjejwwanhDpu-ORpAi_EkUDjsztwfdxqAFsB4a_oQsX57qA0gnpWwL3vaNZ4dTeiq0zqLANiQRHNDLrs17xYR8Uh3iDUUVsr6TpQ3oC0ntqJi6TCjo3wGgZ')">Show Email</button>
+      <button onclick="showEmail('${message.id}', ${attachments.length > 0 ? '[' + attachments.map(att => `'${att.body.attachmentId}'`).join(',') + ']' : '[]'})">Show Email</button>
         <span><strong>From:</strong> ${from.value}</span>
         <span><strong>Subject:</strong> ${subject.value}</span>
       </div>
@@ -227,20 +243,6 @@ limitations under the License.
         <p><strong>Date:</strong> ${date.value}</p>
         <p><strong>Body:</strong> ${body}</p>
         ${attachments.length > 0 ? `<p><strong>Attachments:</strong> ${attachments.map(att => `<a href="#" onclick="downloadAttachment('${message.id}', '${att.body.attachmentId}', '${att.filename}')">${att.filename}</a>`).join(', ')}</p>` : ''}
-            <div id="my_pdf_viewer">
-        <div id="canvas_container">
-            <canvas id="pdf_renderer"></canvas>
-        </div>
-        <div id="navigation_controls">
-            <button id="go_previous" onclick="goPrevious()">Previous</button>
-            <input id="current_page" value="1" type="number" onchange="goToPage()"/>
-            <button id="go_next" onclick="goNext()">Next</button>
-        </div>
-        <div id="zoom_controls">
-            <button id="zoom_in" onclick="zoomIn()">+</button>
-            <button id="zoom_out" onclick="zoomOut()">-</button>
-        </div>
-        </div>
       </div>
     `;
                 emails.push(emailHtml);
@@ -249,6 +251,8 @@ limitations under the License.
         }
 
         async function showEmail(id, attachmentId) {
+            document.getElementById('my_pdf_viewer').style.display = 'block';
+
             const emailDiv = document.getElementById(id);
             if (emailDiv.style.display === 'none') {
                 emailDiv.style.display = 'block';
@@ -257,6 +261,7 @@ limitations under the License.
                 pdfjsLib.getDocument(url).then((pdf) => {
                     myState.pdf = pdf;
                     render();
+                    extractText(pdf)
                 });
 
             } else {
@@ -268,6 +273,28 @@ limitations under the License.
                     context.clearRect(0, 0, canvas.width, canvas.height);
                 }
             }
+        }
+
+        function extractText(pdf){
+            // Extract the text content from the PDF
+            const textPromises = [];
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                textPromises.push(
+                pdf.getPage(pageNum).then((page) => {
+                    return page.getTextContent().then((textContent) => {
+                    return textContent.items.map(item => item.str).join(' ');
+                    });
+                })
+                );
+            }
+
+            Promise.all(textPromises).then((pageTexts) => {
+                // Combine the text from all pages into a single string
+                const fullText = pageTexts.join('\n');
+
+                // Do something with the extracted text
+                console.log(fullText);
+            });
         }
 
         var myState = {
@@ -382,7 +409,28 @@ limitations under the License.
         }
     </script>
 
+<div class="wrapper">
+  <div class="left">
     <div id="email-content"></div>
+  </div>
+  <div class="right">
+    <div id="my_pdf_viewer" style="display:none">
+      <div id="canvas_container">
+        <canvas id="pdf_renderer"></canvas>
+      </div>
+      <div id="navigation_controls">
+        <button id="go_previous" onclick="goPrevious()">Previous</button>
+        <input id="current_page" value="1" type="number" onchange="goToPage()"/>
+        <button id="go_next" onclick="goNext()">Next</button>
+      </div>
+      <div id="zoom_controls">
+        <button id="zoom_in" onclick="zoomIn()">+</button>
+        <button id="zoom_out" onclick="zoomOut()">-</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
     <script async defer src="https://apis.google.com/js/api.js" onload="gapiLoaded()"></script>

@@ -217,7 +217,7 @@ limitations under the License.
                 }
                 const emailHtml = `
       <div>
-        <button onclick="showEmail('${message.id}')">Show Email</button>
+        <button onclick="showEmail('${message.id}', 'ANGjdJ8O6xXgX3w7INF5EE_GdxUsp7mWxcii_yI8scnYhC8RbTIoNiG7f4sJlCxpTRZ5wHijWwnXwqS-TPiUW1lannJId5ttX7B6pi4ZoX2bOZ3kGSUP6OsJfy-7OF2rZhBv_yOFSD4205xXLLtzWeBZkXtdnKA0fVx2uFR40wIZ5P78JfKq0XOh_0XSdtPPBK_tyXEgSmlctB9N-RT_SrA2N2AYkN_Ici0ENnJOx_7xtXsABell0Ey4_g9Cz95hb3lzp5bfaoVlrFKMsAPElLGGMGbp1yjejwwanhDpu-ORpAi_EkUDjsztwfdxqAFsB4a_oQsX57qA0gnpWwL3vaNZ4dTeiq0zqLANiQRHNDLrs17xYR8Uh3iDUUVsr6TpQ3oC0ntqJi6TCjo3wGgZ')">Show Email</button>
         <span><strong>From:</strong> ${from.value}</span>
         <span><strong>Subject:</strong> ${subject.value}</span>
       </div>
@@ -248,19 +248,17 @@ limitations under the License.
             document.getElementById('email-content').innerHTML = emails.join('');
         }
 
-        async function showEmail(id) {
+        async function showEmail(id, attachmentId) {
             const emailDiv = document.getElementById(id);
             if (emailDiv.style.display === 'none') {
                 emailDiv.style.display = 'block';
-                const pdfLink = emailDiv.querySelector('a');
-                if (pdfLink) {
-                    const pdfUrl = pdfLink.href;
-                    const pdfByteArray = await fetch(pdfUrl).then(res => res.arrayBuffer());
-                    const pdf = await pdfjsLib.getDocument({
-                        data: pdfByteArray
-                    }).promise;
-                    renderPdf(pdf);
-                }
+
+                const url = window.URL.createObjectURL(await getFile(id, attachmentId));
+                pdfjsLib.getDocument(url).then((pdf) => {
+                    myState.pdf = pdf;
+                    render();
+                });
+
             } else {
                 emailDiv.style.display = 'none';
                 const pdfViewer = emailDiv.querySelector('#my_pdf_viewer');
@@ -272,113 +270,98 @@ limitations under the License.
             }
         }
 
-        let pdfState = {
+        var myState = {
             pdf: null,
             currentPage: 1,
             zoom: 1
-        };
+        }
 
-        function renderPdf(pdf) {
-            pdfState.pdf = pdf;
-            pdfState.currentPage = 1;
-            const canvas = document.querySelector('#pdf_renderer');
-            const context = canvas.getContext('2d');
-            pdf.getPage(1).then(page => {
-                const viewport = page.getViewport(pdfState.zoom);
+        function render() {
+            myState.pdf.getPage(myState.currentPage).then((page) => {
+                var canvas = document.getElementById("pdf_renderer");
+                var ctx = canvas.getContext('2d');
+                var viewport = page.getViewport(myState.zoom);
                 canvas.width = viewport.width;
                 canvas.height = viewport.height;
+
                 page.render({
-                    canvasContext: context,
+                    canvasContext: ctx,
                     viewport: viewport
                 });
             });
         }
 
         function goNext() {
-            if (pdfState.pdf && pdfState.currentPage < pdfState.pdf.numPages) {
-                pdfState.currentPage++;
-                renderPage();
+            if (myState.pdf && myState.currentPage < myState.pdf.numPages) {
+                myState.currentPage++;
+                render();
             }
         }
 
         function goPrevious() {
-            if (pdfState.pdf && pdfState.currentPage > 1) {
-                pdfState.currentPage--;
-                renderPage();
+            if (myState.pdf && myState.currentPage > 1) {
+                myState.currentPage--;
+                render();
             }
         }
 
         function goToPage() {
-            if (pdfState.pdf) {
+            if (myState.pdf) {
                 const input = document.querySelector('#current_page');
                 const newPage = parseInt(input.value);
-                if (newPage >= 1 && newPage <= pdfState.pdf.numPages) {
-                    pdfState.currentPage = newPage;
-                    renderPage();
+                if (newPage >= 1 && newPage <= myState.pdf.numPages) {
+                    myState.currentPage = newPage;
+                    render();
                 } else {
-                    input.value = pdfState.currentPage;
+                    input.value = myState.currentPage;
                 }
             }
         }
 
         function zoomIn() {
-            if (pdfState.pdf && pdfState.zoom < 3) {
-                pdfState.zoom += 0.2;
-                renderPage();
+            if (myState.pdf && myState.zoom < 3) {
+                myState.zoom += 0.2;
+                render();
             }
         }
 
         function zoomOut() {
-            if (pdfState.pdf && pdfState.zoom > 0.5) {
-                pdfState.zoom -= 0.2;
-                renderPage();
+            if (myState.pdf && myState.zoom > 0.5) {
+                myState.zoom -= 0.2;
+                render();
             }
         }
 
-        function renderPage() {
-            const canvas = document.querySelector('#pdf_renderer');
-            const context = canvas.getContext('2d');
-            pdfState.pdf.getPage(pdfState.currentPage).then(page => {
-                const viewport = page.getViewport(pdfState.zoom);
-                canvas.width = viewport.width;
-                canvas.height = viewport.height;
-                page.render({
-                    canvasContext: context,
-                    viewport: viewport
-                });
-            });
-        }
-
-        async function getFile(messageId, attachmentId){
+        async function getFile(messageId, attachmentId) {
             const response = await gapi.client.request({
-                    'path': `/gmail/v1/users/me/messages/${messageId}/attachments/${attachmentId}`,
-                    'method': 'GET',
-                    'params': {
-                        'format': 'raw'
-                    },
-                    'headers': {
-                        'Authorization': `Bearer ${gapi.auth.getToken().access_token}`
-                    },
-                    'responseType': 'arraybuffer',
-                });
+                'path': `/gmail/v1/users/me/messages/${messageId}/attachments/${attachmentId}`,
+                'method': 'GET',
+                'params': {
+                    'format': 'raw'
+                },
+                'headers': {
+                    'Authorization': `Bearer ${gapi.auth.getToken().access_token}`
+                },
+                'responseType': 'arraybuffer',
+            });
 
-                const replacedString = response.result.data.replace(/-/g, '+').replace(/_/g, '/');
+            const replacedString = response.result.data.replace(/-/g, '+').replace(/_/g, '/');
 
-                // Convert base64 string to binary data
-                const binaryData = atob(replacedString);
+            // Convert base64 string to binary data
+            const binaryData = atob(replacedString);
 
-                // Create a Uint8Array from the binary data
-                const uint8Array = new Uint8Array(binaryData.length);
-                for (let i = 0; i < binaryData.length; i++) {
-                    uint8Array[i] = binaryData.charCodeAt(i);
-                }
+            // Create a Uint8Array from the binary data
+            const uint8Array = new Uint8Array(binaryData.length);
+            for (let i = 0; i < binaryData.length; i++) {
+                uint8Array[i] = binaryData.charCodeAt(i);
+            }
 
-                // Create a blob object from the Uint8Array
-                const blob = new Blob([uint8Array], {
-                    type: response.headers['Content-Type']
-                });
+            // Create a blob object from the Uint8Array
+            const blob = new Blob([uint8Array], {
+                type: response.headers['Content-Type']
+            });
 
-                return blob;
+            return blob;
         }
 
         async function downloadAttachment(messageId, attachmentId, filename) {

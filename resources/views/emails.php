@@ -52,8 +52,8 @@ limitations under the License.
         /* exported handleSignoutClick */
 
         // TODO(developer): Set to client ID and API key from the Developer Console
-        const CLIENT_ID = '586619828357-8afjhrkhe869fr17kg2lgo5pvqm7a4iu.apps.googleusercontent.com';
-        const API_KEY = 'AIzaSyD3oQKfKOmsUVJhbY24UcSvVAlGDbmnjuA';
+        const CLIENT_ID = '';
+        const API_KEY = '';
 
         // Discovery doc URL for APIs used by the quickstart
         const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/gmail/v1/rest';

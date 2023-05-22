@@ -7,57 +7,38 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+En este documento se presenta el proceso básico para utilizar la API de Gmail en una aplicación de Laravel y leer correos electrónicos, incluyendo la lectura de archivos PDF adjuntos. En primer lugar, se explica cómo configurar la API de Gmail y autenticar la aplicación de Laravel para acceder a la cuenta de Gmail. Luego, se describe cómo acceder a la bandeja de entrada y leer los correos electrónicos. Además, se proporciona información sobre cómo implementar la funcionalidad para leer archivos PDF adjuntos en los correos electrónicos. Al final del documento, los lectores tendrán una comprensión sólida de los pasos necesarios para utilizar la API de Gmail en una aplicación de Laravel para leer correos electrónicos y archivos adjuntos de PDF.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### ¿Cómo se usa?
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* Configurar el entorno de Google, para obtener la API Key y el Client ID, necesarias para poder utilizar la aplicación
+https://developers.google.com/gmail/api/quickstart/js
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* Clonar el repositorio con el proyecto
+https://github.com/kuronneko/gmail_api
 
-## Learning Laravel
+* Establecer la API key y el Client ID en las líneas 55 y 56 del archivo "emails.php"
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Demostración
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Es importante que la URL para obtener el token, sea la misma ingresada en el entorno de configuración de Google
+http://localhost/gmail
 
-## Laravel Sponsors
+La cuenta tiene que ser o la del usuario dueño de la aplicación de Google, o la de algún usuario invitado para acceder a esta.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Al momento de obtener el token de autorización se cargaran los últimos 10 correos electrónicos del buzón de entrada, y al momento de dar click en “Show Email” se mostrará el detalle de este, como también se renderiza el pdf (en caso de haber) en la columna derecha. En el console.log se muestra como se extrae el texto del pdf.
 
-### Premium Partners
+### Importante
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+El código de demostración para el proyecto fue escrito en su totalidad en javascript, utilizando como base el mostrado en la documentación de google (JavaScript quickstart). Es necesario señalar que también existen dependencias para hacer el mismo proceso con PHP.
 
-## Contributing
+### Documentación útil
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+https://stackoverflow.com/questions/11485271/google-oauth-2-authorization-error-redirect-uri-mismatch
+https://developers.google.com/gmail/api/reference/rest/v1/users.messages.attachments/get
+https://base64.guru/converter/decode/image
+https://code.tutsplus.com/tutorials/how-to-create-a-pdf-viewer-in-javascript--cms-32505
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
 ## License
 
